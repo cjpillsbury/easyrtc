@@ -1,5 +1,7 @@
 // Load required modules
-var http    = require("http");              // http server core module
+var http = require("http");              // http server core module
+var https = require("https");              // http server core module
+var pem = require("pem");
 var express = require("express");           // web framework external module
 var serveStatic = require('serve-static');  // serve static files
 var socketIo = require("socket.io");        // web socket external module
@@ -8,15 +10,27 @@ var easyrtc = require("../");               // EasyRTC external module
 // Set process name
 process.title = "node-easyrtc";
 
+pem.createCertificate({days: 1, selfSigned: true}, function(err, keys) {
+var options = {
+  key: keys.serviceKey,
+  cert: keys.certificate
+};
+
 // Setup and configure Express http server. Expect a subfolder called "static" to be the web root.
 var app = express();
 app.use(serveStatic('static', {'index': ['index.html']}));
 
+var httpPort = 8080;
+var httpsPort = 8888;
 // Start Express http server on port 8080
-var webServer = http.createServer(app).listen(8080);
-
+var httpWebServer = http.createServer(app).listen(httpPort, function() {
+    console.log('listening on http://localhost:' + httpPort);
+});
+var httpsWebServer = https.createServer(options, app).listen(httpsPort, function() {
+    console.log('listening on https://localhost:' + httpsPort);
+});
 // Start Socket.io so it attaches itself to Express server
-var socketServer = socketIo.listen(webServer, {"log level":1});
+var socketServer = socketIo.listen(httpsWebServer, {"log level":1});
 
 easyrtc.setOption("logLevel", "debug");
 
@@ -53,7 +67,4 @@ var rtc = easyrtc.listen(app, socketServer, null, function(err, rtcRef) {
     });
 });
 
-//listen on port 8080
-webServer.listen(8080, function () {
-    console.log('listening on http://localhost:8080');
 });

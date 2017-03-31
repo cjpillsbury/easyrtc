@@ -689,6 +689,7 @@ function appInit() {
 
 
     easyrtc.setRoomOccupantListener(callEverybodyElse);
+    easyrtc.setVideoDims(640, 480, 30);
     easyrtc.easyApp("easyrtc.multiparty", "box0", ["box1", "box2", "box3"], loginSuccess);
     easyrtc.setPeerListener(messageListener);
     easyrtc.setDisconnectListener( function() {
